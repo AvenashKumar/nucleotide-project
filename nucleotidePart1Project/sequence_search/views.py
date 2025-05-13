@@ -1,32 +1,24 @@
 import re
 import requests
+from django.conf import settings
 import xml.etree.ElementTree as ET
 from django.shortcuts import render
 from django.core.cache import cache
 
 def fetch_sequence():
-
-    cached = cache.get('nucleotide_sequence')
+    cached = cache.get(settings.NCBI_SEQUENCE_CACHE_KEY)
     if cached:
         return cached
 
-    url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-    params = {
-        "db": "nucleotide",
-        "id": "30271926",
-        "rettype": "fasta",
-        "retmode": "xml"
-    }
-    response = requests.get(url, params=params)
+    response = requests.get(settings.NCBI_EFETCH_URL, params=settings.NCBI_EFETCH_PARAMS)
     if response.status_code == 200:
         xml_root = ET.fromstring(response.text)
         tseq_sequence = xml_root.find('.//TSeq_sequence')
         sequence = tseq_sequence.text.strip().upper()
 
-        # Cache for 1 hour (3600 seconds)
-        cache.set('nucleotide_sequence', sequence, timeout=3600)
-
+        cache.set(settings.NCBI_SEQUENCE_CACHE_KEY, sequence, timeout=settings.NCBI_SEQUENCE_CACHE_TIMEOUT)
         return sequence
+
     return ""
 
 def search_view(request):

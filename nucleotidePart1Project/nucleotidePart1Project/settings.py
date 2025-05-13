@@ -130,3 +130,14 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     }
 }
+
+# NCBI API settings
+NCBI_EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+NCBI_EFETCH_PARAMS = {
+    "db": "nucleotide",
+    "id": "30271926",
+    "rettype": "fasta",
+    "retmode": "xml"
+}
+NCBI_SEQUENCE_CACHE_KEY = "nucleotide_sequence_30271926"
+NCBI_SEQUENCE_CACHE_TIMEOUT = 3600  # 1 hour
