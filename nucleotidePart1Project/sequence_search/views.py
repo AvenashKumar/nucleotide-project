@@ -25,8 +25,13 @@ def search_view(request):
     pattern = ''
     sequence = fetch_sequence()
 
-    if request.method == 'POST':
+    # Accept pattern from query parameter (GET) or form submission (POST)
+    if request.method == 'GET':
+        pattern = request.GET.get('pattern', '')
+    elif request.method == 'POST':
         pattern = request.POST.get('pattern', '')
+
+    if pattern:
         try:
             regex = re.compile(pattern)
             for match in regex.finditer(sequence):
