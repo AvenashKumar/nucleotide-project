@@ -54,8 +54,7 @@ def search_view(request):
                     'match': "Invalid regular expression"
                 }]
 
-            # Cache the result for 10 minutes (600 seconds)
-            cache.set(cache_key, matches, timeout=600)
+            cache.set(cache_key, matches, timeout=settings.NCBI_SEQUENCE_CACHE_TIMEOUT)
 
     return render(request, 'sequence_search/search.html', {
         'pattern': pattern,
