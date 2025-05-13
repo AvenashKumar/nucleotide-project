@@ -55,4 +55,14 @@ python manage.py runserver
 
 ```bash
 http://127.0.0.1:8000/?pattern=(AATCGA|GGCAT)
+http://127.0.0.1:8000/?pattern=ATG[CT]
+http://127.0.0.1:8000/?pattern=(AATCGA|GGCAT)
+http://127.0.0.1:8000/?pattern=G.{2}C
 ```
+
+| Library                           | Purpose                                                                                                                                                             |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`Django==4.2.21`**              | The core web framework powering the application. Handles routing, templates, form handling, settings, and view logic.                                               |
+| **`djangorestframework==3.14.0`** | Provides a RESTful API interface (`/api/v1/search`) so clients can interact with the app programmatically using JSON.                                               |
+| **`requests==2.31.0`**            | Used to make HTTP requests to the [NCBI E-utilities API](https://www.ncbi.nlm.nih.gov/books/NBK25501/) to fetch nucleotide sequences in FASTA/XML format.           |
+| **`pymemcache>=4.0.0`**           | Python client for Memcached. Used to cache the fetched sequence and search results for performance, so repeated requests don’t hit the NCBI API or recompute regex. |
