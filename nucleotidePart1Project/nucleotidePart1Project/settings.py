@@ -133,11 +133,24 @@ CACHES = {
 
 # NCBI API settings
 NCBI_EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+
+# NCBI efetch configuration
+NCBI_EFETCH_DB = "nucleotide"
+NCBI_EFETCH_ID = "30271926"
+NCBI_EFETCH_RETTYPE = "fasta"
+NCBI_EFETCH_RETMODE = "xml"
+
 NCBI_EFETCH_PARAMS = {
-    "db": "nucleotide",
-    "id": "30271926",
-    "rettype": "fasta",
-    "retmode": "xml"
+    "db": NCBI_EFETCH_DB,
+    "id": NCBI_EFETCH_ID,
+    "rettype": NCBI_EFETCH_RETTYPE,
+    "retmode": NCBI_EFETCH_RETMODE
 }
-NCBI_SEQUENCE_CACHE_KEY = "nucleotide_sequence_30271926"
+
+# Cache key prefix
+NCBI_SEQUENCE_CACHE_KEY_PREFIX = "nucleotide_sequence_"
+
+# Full cache key (based on sequence ID)
+NCBI_SEQUENCE_CACHE_KEY = f"{NCBI_SEQUENCE_CACHE_KEY_PREFIX}{NCBI_EFETCH_ID}"
+
 NCBI_SEQUENCE_CACHE_TIMEOUT = 3600  # 1 hour

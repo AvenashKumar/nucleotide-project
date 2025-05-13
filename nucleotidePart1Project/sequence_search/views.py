@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from django.shortcuts import render
 from django.core.cache import cache
 
+
 def fetch_sequence():
     cached = cache.get(settings.NCBI_SEQUENCE_CACHE_KEY)
     if cached:
@@ -21,32 +22,40 @@ def fetch_sequence():
 
     return ""
 
+
 def search_view(request):
     matches = []
     pattern = ''
+    sequence_id = settings.NCBI_EFETCH_ID
     sequence = fetch_sequence()
 
-    # Accept pattern from query parameter (GET) or form submission (POST)
     if request.method == 'GET':
         pattern = request.GET.get('pattern', '')
     elif request.method == 'POST':
         pattern = request.POST.get('pattern', '')
 
     if pattern:
-        try:
-            regex = re.compile(pattern)
-            for match in regex.finditer(sequence):
-                matches.append({
+        cache_key = f"pattern_matches::{sequence_id}::{pattern}"
+        matches = cache.get(cache_key)
+
+        if matches is None:
+            try:
+                regex = re.compile(pattern)
+                matches = [{
                     'start': match.start(),
                     'end': match.end(),
                     'match': match.group()
-                })
-        except re.error:
-            matches.append({
-                'start': -1,
-                'end': -1,
-                'match': "Invalid regular expression"
-            })
+                } for match in regex.finditer(sequence)]
+
+            except re.error:
+                matches = [{
+                    'start': -1,
+                    'end': -1,
+                    'match': "Invalid regular expression"
+                }]
+
+            # Cache the result for 10 minutes (600 seconds)
+            cache.set(cache_key, matches, timeout=600)
 
     return render(request, 'sequence_search/search.html', {
         'pattern': pattern,
