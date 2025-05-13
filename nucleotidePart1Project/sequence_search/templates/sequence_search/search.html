@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nucleotide Search</title>
+    <style>
+        pre {
+            white-space: pre-wrap;       /* Wraps lines */
+            word-wrap: break-word;       /* Breaks long words if necessary */
+        }
+    </style>
+</head>
+<body>
+    <h1>Nucleotide Regex Search</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="pattern">Regex Pattern:</label>
+        <input type="text" name="pattern" value="{{ pattern }}" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <h2>Sequence</h2>
+    <pre>{{ sequence }}</pre>
+
+    <h2>Matches</h2>
+    {% if matches %}
+        <ul>
+            {% for match in matches %}
+                <li><strong>{{ match.match }}</strong> found at position {{ match.start }} to {{ match.end }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No matches found.</p>
+    {% endif %}
+</body>
+</html>
