@@ -1,35 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Nucleotide Search</title>
+    <meta charset="UTF-8">
+    <title>Nucleotide Regex Search</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2em;
+            max-width: 800px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 0.5em;
+            width: 60%;
+            max-width: 400px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.5em 1em;
+            margin-left: 10px;
+            font-size: 1em;
+        }
         pre {
-            white-space: pre-wrap;       /* Wraps lines */
-            word-wrap: break-word;       /* Breaks long words if necessary */
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 1em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        ul {
+            padding-left: 1.2em;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+        .error {
+            color: red;
         }
     </style>
 </head>
 <body>
-    <h1>Nucleotide Regex Search</h1>
+    <h1>Nucleotide Regex Search (via API)</h1>
 
-    <form method="get">
+    <form id="search-form">
         <label for="pattern">Regex Pattern:</label>
-        <input type="text" name="pattern" value="{{ pattern }}" required>
+        <input type="text" name="pattern" value="{{ pattern }}" id="pattern" required>
         <button type="submit">Search</button>
+        <button type="button" id="reset-btn">Reset</button>
     </form>
 
-    <h2>Sequence (Scroll down to see the matches)</h2>
-    <pre>{{ sequence }}</pre>
+    <div id="result-section" style="display: none;">
+        <h2>Sequence</h2>
+        <pre id="sequence"></pre>
 
-    <h2>Matches</h2>
-    {% if matches %}
-        <ul>
-            {% for match in matches %}
-                <li><strong>{{ match.match }}</strong> found at position {{ match.start }} to {{ match.end }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No matches found.</p>
-    {% endif %}
+        <h2>Matches</h2>
+        <ul id="match-list"></ul>
+    </div>
+
+    <script>
+        const form = document.getElementById('search-form');
+        const patternInput = document.getElementById('pattern');
+        const sequenceDisplay = document.getElementById('sequence');
+        const matchList = document.getElementById('match-list');
+        const resultSection = document.getElementById('result-section');
+        const resetButton = document.getElementById('reset-btn');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const pattern = patternInput.value.trim();
+            if (!pattern) return;
+
+            fetch(`/api/v1/search?pattern=${encodeURIComponent(pattern)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Invalid pattern or failed request.");
+                    return response.json();
+                })
+                .then(data => {
+                    // Update URL with ?pattern=... without reloading
+                    const newUrl = `${window.location.pathname}?pattern=${encodeURIComponent(pattern)}`;
+                    window.history.pushState({ pattern }, '', newUrl);
+
+                    resultSection.style.display = 'block';
+                    sequenceDisplay.textContent = data.sequence;
+
+                    matchList.innerHTML = '';
+                    if (data.matches.length > 0) {
+                        data.matches.forEach(match => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `<strong>${match.match}</strong> found at position ${match.start} to ${match.end}`;
+                            matchList.appendChild(li);
+                        });
+                    } else {
+                        const li = document.createElement('li');
+                        li.textContent = 'No matches found.';
+                        matchList.appendChild(li);
+                    }
+                })
+                .catch(error => {
+                        resultSection.style.display = 'block';
+                        sequenceDisplay.textContent = '';
+                        matchList.innerHTML = `<li class="error">${error.message}</li>`;
+                    });
+        });
+
+        resetButton.addEventListener('click', function () {
+            patternInput.value = '';
+            sequenceDisplay.textContent = '';
+            matchList.innerHTML = '';
+            resultSection.style.display = 'none';
+        });
+    </script>
 </body>
 </html>

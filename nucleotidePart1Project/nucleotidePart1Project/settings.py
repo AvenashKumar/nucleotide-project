@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sequence_search'
+    'sequence_search',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
