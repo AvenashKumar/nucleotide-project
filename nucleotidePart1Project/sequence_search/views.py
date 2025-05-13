@@ -1,41 +1,23 @@
 import re
-import requests
 from django.conf import settings
-import xml.etree.ElementTree as ET
 from django.shortcuts import render
 from django.core.cache import cache
+import urllib.parse
+from .services import fetch_sequence
 
 
-def fetch_sequence():
-    cached = cache.get(settings.NCBI_SEQUENCE_CACHE_KEY)
-    if cached:
-        return cached
+def get_pattern(request):
+    return request.GET.get('pattern') or request.POST.get('pattern') or ''
 
-    response = requests.get(settings.NCBI_EFETCH_URL, params=settings.NCBI_EFETCH_PARAMS)
-    if response.status_code == 200:
-        xml_root = ET.fromstring(response.text)
-        tseq_sequence = xml_root.find('.//TSeq_sequence')
-        sequence = tseq_sequence.text.strip().upper()
-
-        cache.set(settings.NCBI_SEQUENCE_CACHE_KEY, sequence, timeout=settings.NCBI_SEQUENCE_CACHE_TIMEOUT)
-        return sequence
-
-    return ""
-
-
-def search_view(request):
+def search_pattern(request):
     matches = []
-    pattern = ''
+    pattern = get_pattern(request)
     sequence_id = settings.NCBI_EFETCH_ID
     sequence = fetch_sequence()
 
-    if request.method == 'GET':
-        pattern = request.GET.get('pattern', '')
-    elif request.method == 'POST':
-        pattern = request.POST.get('pattern', '')
-
     if pattern:
-        cache_key = f"pattern_matches::{sequence_id}::{pattern}"
+        escaped_pattern = urllib.parse.quote(pattern, safe='')
+        cache_key = f"pattern_matches::{sequence_id}::{escaped_pattern}"
         matches = cache.get(cache_key)
 
         if matches is None:
