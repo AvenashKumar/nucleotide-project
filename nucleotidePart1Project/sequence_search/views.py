@@ -2,8 +2,13 @@ import re
 import requests
 import xml.etree.ElementTree as ET
 from django.shortcuts import render
+from django.core.cache import cache
 
 def fetch_sequence():
+
+    cached = cache.get('nucleotide_sequence')
+    if cached:
+        return cached
 
     url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     params = {
@@ -17,6 +22,10 @@ def fetch_sequence():
         xml_root = ET.fromstring(response.text)
         tseq_sequence = xml_root.find('.//TSeq_sequence')
         sequence = tseq_sequence.text.strip().upper()
+
+        # Cache for 1 hour (3600 seconds)
+        cache.set('nucleotide_sequence', sequence, timeout=3600)
+
         return sequence
     return ""
 
